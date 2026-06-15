@@ -81,9 +81,12 @@ Paste this whole message into your local Claude Code to kick everything off:
 ```
 You are taking over the HoboLife project locally. Read docs/DESIGN.md for the
 full game design (a 3D third-person life-sim: Stick RPG x RuneScape x D&D x
-Pokémon, starting as a hobo in LA). There is also a web prototype in client/
-that captures the mechanics — use it as a design reference only; we are now
-rebuilding in UNITY for realistic graphics.
+Pokémon, starting as a hobo in LA) and docs/UNITY_BUILD_PLAN.md for the
+milestone plan to follow. There is a web prototype in client/ that captures the
+mechanics — use it as a design reference only; we are now rebuilding in UNITY for
+realistic graphics. Ready-made starter C# scripts are in unity-starter/Scripts/
+(third-person controller, orbit camera, stats, dice check) — copy them into the
+Unity project's Assets/Scripts.
 
 Please:
 1. Set up a Unity MCP bridge so you can see and control the Unity editor
