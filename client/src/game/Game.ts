@@ -9,7 +9,7 @@ import type { CharacterData, HandSlot, ItemStack } from '../core/types';
 import { TREES, type CheckOutcome } from '../data/dialogue';
 import { getItem, maybeItem } from '../data/items';
 import { makeCityNPCs } from '../data/npcs';
-import { SPAWN } from '../data/city';
+import { SPAWN, type BuildingDef } from '../data/city';
 import { FollowCamera } from '../engine/FollowCamera';
 import { Input } from '../engine/Input';
 import { Stage } from '../engine/Stage';
@@ -28,6 +28,7 @@ import { Inventory } from '../ui/Inventory';
 import { JobMiniGame } from '../ui/JobMiniGame';
 import { Toast } from '../ui/Toast';
 import { World } from '../world/World';
+import { buildInterior, collideInterior, type InteriorInstance } from '../world/Interior';
 import { NetClient, type RemotePlayer } from '../net/NetClient';
 
 type Pending =
@@ -73,6 +74,9 @@ export class Game {
   private remotes = new Map<string, Remote>();
   private netSendAccum = 0;
 
+  private interior: InteriorInstance | null = null;
+  private interiorReturn = { x: 0, z: 0 };
+
   constructor(state: GameState) {
     this.state = state;
     const app = document.getElementById('app')!;
@@ -110,13 +114,19 @@ export class Game {
     this.input.enabled = !modal;
 
     if (!modal && !this.state.isDead()) {
-      this.player.update(dt, this.input, this.cam, (x, z) => this.world.collide(x, z));
-      this.state.setPosition(this.player.position.x, this.player.position.z);
-      for (const npc of this.npcs) npc.update(dt, (x, z) => this.world.collide(x, z));
+      if (this.interior) {
+        this.player.update(dt, this.input, this.cam, (x, z) => collideInterior(this.interior!, x, z));
+        this.interior.clerk.update(dt, 0);
+        this.cam.distance = Math.min(this.cam.distance, 7.5);
+      } else {
+        this.player.update(dt, this.input, this.cam, (x, z) => this.world.collide(x, z));
+        this.state.setPosition(this.player.position.x, this.player.position.z);
+        for (const npc of this.npcs) npc.update(dt, (x, z) => this.world.collide(x, z));
+        this.netTick(dt);
+      }
       this.state.advanceTime(dt);
       this.resolvePending();
       this.updatePrompt();
-      this.netTick(dt);
     }
 
     this.cam.target.set(this.player.position.x, 0, this.player.position.z);
@@ -166,12 +176,27 @@ export class Game {
       return;
     }
     if (this.isModalOpen() || this.state.isDead()) return;
+    if (code === 'Escape') {
+      if (this.interior) this.exitInterior();
+      return;
+    }
     switch (code) {
-      case 'KeyQ': this.talkNearest(); break;
-      case 'KeyE': this.enterNearest(); break;
+      case 'KeyQ': if (!this.interior) this.talkNearest(); break;
+      case 'KeyE': this.interactKey(); break;
       case 'KeyF': this.useHand('left'); break;
       case 'KeyG': this.useHand('right'); break;
     }
+  }
+
+  /** E: enter a building, or (inside) use the counter / step outside. */
+  private interactKey(): void {
+    if (this.interior) {
+      if (this.distXZ(this.interior.exit) < 2.4) this.exitInterior();
+      else if (this.distXZ(this.interior.counter) < 2.6) this.openServices(this.interior.def);
+      return;
+    }
+    const door = this.world.nearestDoor(this.player.position.x, this.player.position.z, 2.6);
+    if (door) this.enterInterior(door.def, door.door);
   }
 
   private onClick(ev: { ndcX: number; ndcY: number; button: number }): void {
@@ -182,6 +207,15 @@ export class Game {
     }
     this.pointer.set(ev.ndcX, ev.ndcY);
     this.raycaster.setFromCamera(this.pointer, this.stage.camera);
+
+    // Inside a building: click the floor to walk.
+    if (this.interior) {
+      const hit = this.raycaster.intersectObject(this.interior.floor);
+      if (hit.length) {
+        this.player.setMoveTarget(hit[0].point.x, hit[0].point.z);
+      }
+      return;
+    }
 
     // NPCs first.
     const npcHits = this.raycaster.intersectObjects(this.npcs.map((n) => n.group), true);
@@ -224,7 +258,7 @@ export class Game {
   // --- interaction ----------------------------------------------------------
 
   private resolvePending(): void {
-    if (!this.pending) return;
+    if (!this.pending || this.interior) return;
     if (this.pending.type === 'npc') {
       const npc = this.pending.entity;
       if (this.dist(npc.position) < INTERACT_RANGE) {
@@ -235,12 +269,18 @@ export class Game {
       const b = this.pending.building;
       if (Math.hypot(b.door.x - this.player.position.x, b.door.z - this.player.position.z) < 2.4) {
         this.pending = null;
-        this.openBuilding(b);
+        this.enterInterior(b.def, b.door);
       }
     }
   }
 
   private updatePrompt(): void {
+    if (this.interior) {
+      if (this.distXZ(this.interior.exit) < 2.4) this.hud.setPrompt('Press <b>E</b> to step outside');
+      else if (this.distXZ(this.interior.counter) < 2.6) this.hud.setPrompt('Press <b>E</b> for service');
+      else this.hud.setPrompt(null);
+      return;
+    }
     const npc = this.nearestNpcInRange();
     if (npc) {
       this.hud.setPrompt(`Press <b>Q</b> to talk to ${npc.spec.name}`);
@@ -258,9 +298,34 @@ export class Game {
     const npc = this.nearestNpcInRange();
     if (npc) this.openDialogue(npc);
   }
-  private enterNearest(): void {
-    const door = this.world.nearestDoor(this.player.position.x, this.player.position.z, 2.6);
-    if (door) this.openBuilding(door);
+
+  // --- interiors ------------------------------------------------------------
+
+  private enterInterior(def: BuildingDef, returnPos: { x: number; z: number }): void {
+    if (this.interior) return;
+    this.pending = null;
+    this.interiorReturn = { x: returnPos.x, z: returnPos.z };
+    this.interior = buildInterior(def);
+    this.stage.scene.add(this.interior.group);
+    const e = this.interior.entrance;
+    this.player.position.set(e.x, 0, e.z);
+    this.player.group.position.copy(this.player.position);
+    this.player.moveTarget = null;
+    this.player.heading = Math.PI; // face the counter
+    this.player.group.rotation.y = Math.PI;
+    this.state.setPosition(returnPos.x, returnPos.z); // a save resolves outside
+    this.toast.show(`Entered ${def.name}. Walk to the counter (E) or the EXIT.`, 'info', 2600);
+  }
+
+  private exitInterior(): void {
+    if (!this.interior) return;
+    this.stage.scene.remove(this.interior.group);
+    this.interior = null;
+    this.player.position.set(this.interiorReturn.x, 0, this.interiorReturn.z);
+    this.player.group.position.copy(this.player.position);
+    this.player.moveTarget = null;
+    this.cam.distance = 11;
+    this.state.setPosition(this.interiorReturn.x, this.interiorReturn.z);
   }
 
   private nearestNpcInRange(): NPCEntity | null {
@@ -278,6 +343,9 @@ export class Game {
   private dist(p: THREE.Vector3): number {
     return Math.hypot(p.x - this.player.position.x, p.z - this.player.position.z);
   }
+  private distXZ(p: { x: number; z: number }): number {
+    return Math.hypot(p.x - this.player.position.x, p.z - this.player.position.z);
+  }
 
   private openDialogue(npc: NPCEntity): void {
     const tree = TREES[npc.spec.tree];
@@ -290,7 +358,7 @@ export class Game {
     });
   }
 
-  private openBuilding(inst: World['buildings'][number]): void {
+  private openServices(def: BuildingDef): void {
     const ctx: BuildingCtx = {
       state: this.state,
       toast: this.toast,
@@ -305,7 +373,7 @@ export class Game {
         }),
       refreshAppearance: () => this.player.setAppearance(this.state.character.appearance),
     };
-    this.buildingPanel.open(inst.def, ctx);
+    this.buildingPanel.open(def, ctx);
   }
 
   private applyOutcome(o: CheckOutcome): void {
@@ -415,6 +483,11 @@ export class Game {
     this.creation.open(
       { mode: 'respawn', existingId: this.state.account.id, deaths: this.state.account.deaths },
       (res) => {
+        if (this.interior) {
+          this.stage.scene.remove(this.interior.group);
+          this.interior = null;
+          this.cam.distance = 11;
+        }
         this.state.respawn(res.skills, res.appearance);
         this.player.setAppearance(this.state.character.appearance);
         this.player.position.set(SPAWN.x, 0, SPAWN.z);
