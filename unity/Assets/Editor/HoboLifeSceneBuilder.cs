@@ -71,6 +71,20 @@ public static class HoboLifeSceneBuilder
                   ". Press Play — WASD to move, drag mouse to orbit, scroll to zoom.");
     }
 
+    // One-time bootstrap: if the Milestone 1 scene doesn't exist yet, build it
+    // automatically after scripts compile. Goes inert once the scene exists, so
+    // it never disturbs later edits. (Lets the scene build without a menu click.)
+    [UnityEditor.Callbacks.DidReloadScripts]
+    static void AutoBuildOnce()
+    {
+        if (File.Exists(ScenePath)) return;
+        EditorApplication.delayCall += () =>
+        {
+            if (!File.Exists(ScenePath) && !EditorApplication.isPlayingOrWillChangePlaymode)
+                BuildMilestone1();
+        };
+    }
+
     static void CreateBuilding(string name, Vector3 pos, Vector3 size, Color color)
     {
         GameObject b = GameObject.CreatePrimitive(PrimitiveType.Cube);
