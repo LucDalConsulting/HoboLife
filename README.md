@@ -8,8 +8,14 @@ and get rich.
 Inspired by **Stick RPG**, viewed and animated in the simple third-person style
 of **RuneScape**, with **D&D**-style dice checks and **Pokémon**-style combat.
 
-> Status: **v0.1 — playable vertical slice.** See [`docs/DESIGN.md`](docs/DESIGN.md)
-> for the full design and roadmap.
+> **Direction:** We are rebuilding HoboLife in **Unity** (on Windows) for
+> realistic 3D graphics, driven by **Claude Code running locally** on the
+> developer's machine. 👉 **Start here: [`SETUP_UNITY.md`](SETUP_UNITY.md).**
+>
+> The browser game in [`client/`](client/) is a **playable prototype / design
+> reference** — it captures the full mechanics (skills, dice checks, combat,
+> jobs, interiors, day/night) and the design lives in
+> [`docs/DESIGN.md`](docs/DESIGN.md). The Unity game will live in `unity/`.
 
 ---
 
