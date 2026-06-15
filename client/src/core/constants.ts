@@ -3,7 +3,7 @@
 
 /** Semver of the game build. Bump this on each release; the HUD shows it and
  *  the update banner compares it against the deployed version.json. */
-export const VERSION = '0.1.1';
+export const VERSION = '0.2.0';
 
 /** The four skills. */
 export type SkillKey = 'int' | 'cha' | 'str' | 'tool';
