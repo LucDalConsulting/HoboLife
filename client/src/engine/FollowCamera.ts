@@ -41,6 +41,7 @@ export class FollowCamera {
 
     // Forward = from camera toward target, flattened onto the ground plane.
     this.forward.set(-ox, 0, -oz).normalize();
-    this.right.set(this.forward.z, 0, -this.forward.x); // 90° clockwise
+    // Right = the camera's own right axis on the ground (matches the screen).
+    this.right.set(-this.forward.z, 0, this.forward.x);
   }
 }
