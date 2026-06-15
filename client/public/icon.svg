@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#10151c"/>
+  <circle cx="256" cy="150" r="56" fill="#e8b98a"/>
+  <rect x="214" y="206" width="84" height="150" rx="20" fill="#6b8f3a"/>
+  <rect x="200" y="356" width="36" height="110" rx="14" fill="#3a4a63"/>
+  <rect x="276" y="356" width="36" height="110" rx="14" fill="#3a4a63"/>
+  <rect x="170" y="224" width="30" height="110" rx="14" fill="#6b8f3a" transform="rotate(18 185 279)"/>
+  <rect x="312" y="224" width="30" height="110" rx="14" fill="#6b8f3a" transform="rotate(-18 327 279)"/>
+  <text x="256" y="500" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#f4d35e" text-anchor="middle">HOBO</text>
+</svg>

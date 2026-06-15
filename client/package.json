@@ -1,0 +1,22 @@
+{
+  "name": "hobolife-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "HoboLife — 3D third-person life-sim RPG (game client)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "colyseus.js": "^0.15.26",
+    "three": "^0.160.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.160.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.0"
+  }
+}
