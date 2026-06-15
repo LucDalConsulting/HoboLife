@@ -25,6 +25,7 @@ export class Input {
   private dragMoved = 0;
   private leftDownMoved = 0;
   private leftDown = false;
+  private leftDragging = false;
   private el: HTMLElement;
 
   constructor(el: HTMLElement) {
@@ -69,17 +70,26 @@ export class Input {
     } else if (e.button === 0) {
       this.leftDown = true;
       this.leftDownMoved = 0;
+      this.leftDragging = false;
     }
   };
 
   private onPointerMove = (e: PointerEvent) => {
+    // Right-drag orbits.
     if (this.dragging && this.enabled) {
       this.orbitDX += e.movementX;
       this.orbitDY += e.movementY;
       this.dragMoved += Math.abs(e.movementX) + Math.abs(e.movementY);
     }
+    // Left-drag also orbits once it moves past the click threshold, so the
+    // primary button gives full 360° camera control (a tap still = move/click).
     if (this.leftDown) {
       this.leftDownMoved += Math.abs(e.movementX) + Math.abs(e.movementY);
+      if (this.leftDownMoved > 6) this.leftDragging = true;
+      if (this.leftDragging && this.enabled) {
+        this.orbitDX += e.movementX;
+        this.orbitDY += e.movementY;
+      }
     }
   };
 
@@ -89,8 +99,9 @@ export class Input {
       this.dragging = false;
       if (wasClick && this.enabled) this.emitClick(e, 2);
     } else if (e.button === 0) {
-      const wasClick = this.leftDownMoved < 6;
+      const wasClick = !this.leftDragging && this.leftDownMoved < 6;
       this.leftDown = false;
+      this.leftDragging = false;
       if (wasClick && this.enabled) this.emitClick(e, 0);
     }
   };

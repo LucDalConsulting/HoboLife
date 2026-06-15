@@ -35,6 +35,8 @@ export class World {
     for (const def of BUILDINGS) this.buildBuilding(def);
     this.buildParks();
     this.buildStreetFurniture();
+    this.buildPalms();
+    this.buildBackdrop();
   }
 
   // --- surfaces -------------------------------------------------------------
@@ -287,6 +289,78 @@ export class World {
     this.root.add(h);
   }
 
+  // --- LA flavour -----------------------------------------------------------
+
+  private buildPalms(): void {
+    for (let i = -WORLD_HALF + 9; i < WORLD_HALF; i += 13) {
+      this.addPalm(ROAD_HALF + 3.4, i + 3);
+      this.addPalm(-(ROAD_HALF + 3.4), i - 3);
+    }
+  }
+
+  private addPalm(x: number, z: number): void {
+    if (this.insideAnyBuilding(x, z, 1.5)) return;
+    const palm = new THREE.Group();
+    const bark = new THREE.MeshStandardMaterial({ color: 0xa6864f, roughness: 0.95 });
+    const lean = randFloat(-0.05, 0.05);
+    let y = 0;
+    const segs = 7;
+    for (let i = 0; i < segs; i++) {
+      const r = Math.max(0.09, 0.22 - i * 0.017);
+      const h = 0.85;
+      const seg = new THREE.Mesh(new THREE.CylinderGeometry(r - 0.015, r, h, 8), bark);
+      seg.position.set(lean * i * 0.7, y + h / 2, 0);
+      seg.rotation.z = lean;
+      seg.castShadow = true;
+      palm.add(seg);
+      y += h * 0.95;
+    }
+    const crown = new THREE.Group();
+    crown.position.set(lean * segs * 0.7, y, 0);
+    palm.add(crown);
+    const frondMat = new THREE.MeshStandardMaterial({ color: 0x3f8b3a, roughness: 0.8, side: THREE.DoubleSide, flatShading: true });
+    for (let k = 0; k < 9; k++) {
+      const pivot = new THREE.Group();
+      pivot.rotation.y = (k / 9) * Math.PI * 2;
+      crown.add(pivot);
+      const frond = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.05, 0.5), frondMat);
+      frond.position.x = 1.15;
+      frond.rotation.z = -0.34;
+      frond.castShadow = true;
+      pivot.add(frond);
+    }
+    const cocoMat = new THREE.MeshStandardMaterial({ color: 0x5a3d24, roughness: 0.8 });
+    for (let k = 0; k < 4; k++) {
+      const coco = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), cocoMat);
+      const a = (k / 4) * Math.PI * 2;
+      coco.position.set(Math.cos(a) * 0.25, -0.15, Math.sin(a) * 0.25);
+      crown.add(coco);
+    }
+    palm.position.set(x, 0, z);
+    palm.rotation.y = randFloat(0, Math.PI * 2);
+    this.root.add(palm);
+  }
+
+  private buildBackdrop(): void {
+    const hillMat = new THREE.MeshStandardMaterial({ color: 0x70683a, roughness: 1, flatShading: true });
+    const hills: [number, number, number][] = [
+      [-22, -108, 50],
+      [34, -120, 46],
+      [-78, -96, 40],
+      [86, -70, 38],
+    ];
+    for (const [x, z, r] of hills) {
+      const hill = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1), hillMat);
+      hill.position.set(x, -r * 0.34, z);
+      hill.scale.set(1, 0.6, 1);
+      this.root.add(hill);
+    }
+    const sign = bigText('HOBOWOOD', '#f2efe6');
+    sign.position.set(-22, 18, -88);
+    sign.scale.set(36, 5.4, 1);
+    this.root.add(sign);
+  }
+
   // --- collision ------------------------------------------------------------
 
   private insideAnyBuilding(x: number, z: number, pad: number): boolean {
@@ -373,6 +447,25 @@ function makeSign(text: string, accent: number): THREE.Sprite {
   const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
   const sprite = new THREE.Sprite(spriteMat);
   sprite.scale.set(6.4, 1.4, 1);
+  return sprite;
+}
+
+function bigText(text: string, color: string): THREE.Sprite {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 160;
+  const ctx = canvas.getContext('2d')!;
+  ctx.font = 'bold 120px Arial Black, Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = 'rgba(40,40,40,0.6)';
+  ctx.strokeText(text, 512, 84);
+  ctx.fillStyle = color;
+  ctx.fillText(text, 512, 84);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
   return sprite;
 }
 

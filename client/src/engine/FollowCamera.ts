@@ -7,13 +7,13 @@ import type { Input } from './Input';
 
 export class FollowCamera {
   yaw = Math.PI; // looking toward -z initially (behind a +z-facing world)
-  pitch = 0.5;
-  distance = 13;
+  pitch = 0.42;
+  distance = 11;
 
-  private readonly minPitch = 0.12;
-  private readonly maxPitch = 1.35;
-  private readonly minDist = 5;
-  private readonly maxDist = 30;
+  private readonly minPitch = 0.04;
+  private readonly maxPitch = 1.5;
+  private readonly minDist = 3.5;
+  private readonly maxDist = 32;
 
   readonly target = new THREE.Vector3();
   /** Normalised XZ direction the camera is looking (player "forward"). */

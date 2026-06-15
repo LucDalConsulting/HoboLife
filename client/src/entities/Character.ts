@@ -1,7 +1,7 @@
 // A stylized low-poly humanoid built from rounded primitives (capsule limbs,
-// hands, shoes, a simple face) with PBR materials and a walk animation. Shared
-// by the player, NPCs and remote players. Deliberately game-stylized so it reads
-// well under the cinematic lighting without needing external model downloads.
+// hands, shoes, and a proper face) with PBR materials and a walk animation.
+// Shared by the player, NPCs and remote players. The whole figure is one group,
+// so it (head included) rotates as a unit when the body turns.
 
 import * as THREE from 'three';
 import type { Appearance } from '../core/types';
@@ -25,67 +25,79 @@ export class Character {
   private pantsMat: THREE.MeshStandardMaterial;
 
   constructor(app: Appearance) {
-    this.skinMat = mat(app.skin, 0.7);
+    this.skinMat = mat(app.skin, 0.65);
     this.hairMat = mat(app.hair, 0.8);
     this.shirtMat = mat(app.shirt, 0.9);
     this.pantsMat = mat(app.pants, 0.9);
     const shoeMat = mat(0x222428, 0.6);
-    const eyeMat = mat(0x15161a, 0.4);
+    const darkMat = mat(0x16171b, 0.5);
+    const whiteMat = mat(0xf3f1ec, 0.5);
 
     // Legs (capsule + shoe), pivoting at the hip.
     this.buildLeg(this.leftLeg, -0.14, shoeMat);
     this.buildLeg(this.rightLeg, 0.14, shoeMat);
     this.group.add(this.leftLeg, this.rightLeg);
 
-    // Everything above the hips bobs together a little while walking.
-    this.upper.position.y = 0;
+    // Everything above the hips bobs/leans together while walking.
     this.group.add(this.upper);
 
     // Hips / shorts.
     const hips = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.26, 0.32), this.pantsMat);
-    hips.position.y = 0.92; hips.castShadow = true; this.upper.add(hips);
+    hips.position.y = 0.95; hips.castShadow = true; this.upper.add(hips);
 
     // Torso.
-    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.27, 0.42, 6, 14), this.shirtMat);
-    torso.scale.set(1.0, 1.0, 0.74);
-    torso.position.y = 1.2; torso.castShadow = true; this.upper.add(torso);
+    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.27, 0.46, 6, 16), this.shirtMat);
+    torso.scale.set(1.04, 1.0, 0.72);
+    torso.position.y = 1.22; torso.castShadow = true; this.upper.add(torso);
 
     // Arms (capsule + hand), pivoting at the shoulder.
-    this.buildArm(this.leftArm, -0.36);
-    this.buildArm(this.rightArm, 0.36);
+    this.buildArm(this.leftArm, -0.37);
+    this.buildArm(this.rightArm, 0.37);
     this.upper.add(this.leftArm, this.rightArm);
 
-    // Neck + head.
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.12, 8), this.skinMat);
-    neck.position.y = 1.5; this.upper.add(neck);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 18, 14), this.skinMat);
-    head.position.y = 1.68; head.scale.set(1, 1.08, 0.96); head.castShadow = true; this.upper.add(head);
+    // Neck + head, seated clearly above the torso.
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.14, 10), this.skinMat);
+    neck.position.y = 1.66; this.upper.add(neck);
 
-    // Hair cap.
-    const hair = new THREE.Mesh(new THREE.SphereGeometry(0.235, 18, 14, 0, Math.PI * 2, 0, Math.PI * 0.62), this.hairMat);
-    hair.position.set(0, 1.7, -0.02); this.upper.add(hair);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.235, 22, 18), this.skinMat);
+    head.position.y = 1.95; head.scale.set(0.98, 1.06, 0.98); head.castShadow = true; this.upper.add(head);
 
-    // Eyes.
-    for (const ex of [-0.08, 0.08]) {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 8), eyeMat);
-      eye.position.set(ex, 1.69, 0.2); this.upper.add(eye);
+    // Hair cap over the top/back (leaves the face clear).
+    const hair = new THREE.Mesh(
+      new THREE.SphereGeometry(0.25, 22, 18, 0, Math.PI * 2, 0, Math.PI * 0.58),
+      this.hairMat,
+    );
+    hair.position.set(0, 1.96, -0.03); hair.scale.set(1, 1.05, 1.04); this.upper.add(hair);
+
+    // --- Face (faces +z) ---
+    for (const ex of [-0.09, 0.09]) {
+      const eyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.052, 12, 10), whiteMat);
+      eyeWhite.position.set(ex, 1.97, 0.18); eyeWhite.scale.set(1, 1.15, 0.7); this.upper.add(eyeWhite);
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.026, 10, 8), darkMat);
+      pupil.position.set(ex, 1.97, 0.215); this.upper.add(pupil);
+      const brow = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.022, 0.04), this.hairMat);
+      brow.position.set(ex, 2.05, 0.205); this.upper.add(brow);
     }
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.12, 8), this.skinMat);
+    nose.rotation.x = Math.PI / 2; nose.position.set(0, 1.92, 0.23); this.upper.add(nose);
+    const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.022, 0.03), darkMat);
+    mouth.position.set(0, 1.85, 0.215); this.upper.add(mouth);
   }
 
   private buildLeg(pivot: THREE.Group, x: number, shoeMat: THREE.MeshStandardMaterial): void {
-    pivot.position.set(x, 0.86, 0);
-    const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.13, 0.5, 5, 10), this.pantsMat);
-    leg.position.y = -0.38; leg.castShadow = true; pivot.add(leg);
-    const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.13, 0.38), shoeMat);
-    shoe.position.set(0, -0.78, 0.07); shoe.castShadow = true; pivot.add(shoe);
+    pivot.position.set(x, 0.88, 0);
+    const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.13, 0.5, 5, 12), this.pantsMat);
+    leg.position.y = -0.4; leg.castShadow = true; pivot.add(leg);
+    const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.13, 0.4), shoeMat);
+    shoe.position.set(0, -0.82, 0.08); shoe.castShadow = true; pivot.add(shoe);
   }
 
   private buildArm(pivot: THREE.Group, x: number): void {
-    pivot.position.set(x, 1.4, 0);
-    const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.42, 5, 10), this.shirtMat);
-    arm.position.y = -0.3; arm.castShadow = true; pivot.add(arm);
-    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), this.skinMat);
-    hand.position.y = -0.56; hand.castShadow = true; pivot.add(hand);
+    pivot.position.set(x, 1.5, 0);
+    const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.44, 5, 12), this.shirtMat);
+    arm.position.y = -0.32; arm.castShadow = true; pivot.add(arm);
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 10), this.skinMat);
+    hand.position.y = -0.6; hand.castShadow = true; pivot.add(hand);
   }
 
   setAppearance(app: Appearance): void {
@@ -105,9 +117,8 @@ export class Character {
     this.rightLeg.rotation.x = -s;
     this.leftArm.rotation.x = -s * 0.9;
     this.rightArm.rotation.x = s * 0.9;
-    // Subtle bounce + lean while moving.
     this.upper.position.y = moving ? Math.abs(Math.sin(this.phase)) * 0.04 : 0;
-    this.upper.rotation.x = moving ? 0.06 : 0;
+    this.upper.rotation.x = moving ? 0.05 : 0;
   }
 
   static nameSprite(text: string, color = '#ffffff'): THREE.Sprite {
@@ -128,7 +139,7 @@ export class Character {
     tex.anisotropy = 4;
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
     sprite.scale.set(2.0, 0.5, 1);
-    sprite.position.y = 2.15;
+    sprite.position.y = 2.4;
     sprite.renderOrder = 999;
     return sprite;
   }
