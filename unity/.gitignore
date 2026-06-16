@@ -36,6 +36,9 @@ ExportedObj/
 sysinfo.txt
 crashlytics-build.properties
 
+# HoboLife — connector test screenshots (regenerated on demand)
+/[Aa]ssets/Screenshots/
+
 # OS
 .DS_Store
 Thumbs.db
