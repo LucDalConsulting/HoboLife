@@ -13,6 +13,8 @@ public class PlayerInteractor : MonoBehaviour
     void Update()
     {
         if (DialogueUI.Instance == null || DialogueUI.Instance.IsOpen) return;
+        if (BuildingPanel.Instance != null && BuildingPanel.Instance.IsOpen) { DialogueUI.Instance.HidePrompt(); return; }
+        if (JobMiniGame.Instance != null && JobMiniGame.Instance.IsOpen) { DialogueUI.Instance.HidePrompt(); return; }
 
         NpcWander npc = FindNearestNpc();
         if (npc != null)
@@ -27,11 +29,8 @@ public class PlayerInteractor : MonoBehaviour
         if (door != null)
         {
             DialogueUI.Instance.ShowPrompt("Press E to enter " + door.displayName);
-            if (Input.GetKeyDown(KeyCode.E) && stats != null)
-            {
-                string msg = CityServices.Enter(door.kind, stats);
-                Debug.Log("[HoboLife] " + door.displayName + ": " + msg);
-            }
+            if (Input.GetKeyDown(KeyCode.E) && BuildingPanel.Instance != null)
+                BuildingPanel.Instance.Open(door);
             return;
         }
 

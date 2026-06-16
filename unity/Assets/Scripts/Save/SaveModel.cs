@@ -19,6 +19,7 @@ public class SaveData
     // --- persists through death ---
     public IDCard id = new IDCard();
     public int bank;
+    public int loanPrincipal;
     public int deaths;
 
     // --- character (reset on death) ---
