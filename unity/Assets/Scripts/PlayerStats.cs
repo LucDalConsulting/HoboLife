@@ -16,9 +16,10 @@ public class PlayerStats : MonoBehaviour
     public float hunger = 100f;
     public int money;
 
-    [Tooltip("Hunger lost per real second (tune for pacing).")]
-    public float hungerDecayPerSecond = 0.06f;
-    public float starvationDamagePerSecond = 3f;
+    [Tooltip("Hunger lost per real second. 4 hunger/game-hour at 3600s/day = 0.0267.")]
+    public float hungerDecayPerSecond = 0.0267f;
+    [Tooltip("Health lost per real second while starving. 20 HP/game-hour = 0.1333.")]
+    public float starvationDamagePerSecond = 0.1333f;
 
     void Update()
     {
