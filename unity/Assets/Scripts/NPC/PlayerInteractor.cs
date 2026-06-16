@@ -1,30 +1,44 @@
 using UnityEngine;
 
-// HoboLife — on the Player. Finds the nearest NPC in range, shows the talk prompt,
-// and opens dialogue on Q. (Building 'E' interaction is added with the city.)
+// HoboLife — central interaction on the Player. Talk to the nearest NPC (Q) or
+// enter the nearest landmark building (E). NPCs take priority when one is in
+// talk range; otherwise a nearby building door offers entry.
 public class PlayerInteractor : MonoBehaviour
 {
     public float talkRange = 3.5f;
+    PlayerStats stats;
+
+    void Awake() { stats = GetComponent<PlayerStats>(); }
 
     void Update()
     {
-        if (DialogueUI.Instance == null) return;
-        if (DialogueUI.Instance.IsOpen) return;
+        if (DialogueUI.Instance == null || DialogueUI.Instance.IsOpen) return;
 
-        NpcWander nearest = FindNearest();
-        if (nearest != null)
+        NpcWander npc = FindNearestNpc();
+        if (npc != null)
         {
-            DialogueUI.Instance.ShowPrompt("Press Q to talk to " + nearest.displayName);
+            DialogueUI.Instance.ShowPrompt("Press Q to talk to " + npc.displayName);
             if (Input.GetKeyDown(KeyCode.Q))
-                DialogueUI.Instance.Open(nearest.treeId, nearest.displayName);
+                DialogueUI.Instance.Open(npc.treeId, npc.displayName);
+            return;
         }
-        else
+
+        BuildingDoor door = FindNearestDoor();
+        if (door != null)
         {
-            DialogueUI.Instance.HidePrompt();
+            DialogueUI.Instance.ShowPrompt("Press E to enter " + door.displayName);
+            if (Input.GetKeyDown(KeyCode.E) && stats != null)
+            {
+                string msg = CityServices.Enter(door.kind, stats);
+                Debug.Log("[HoboLife] " + door.displayName + ": " + msg);
+            }
+            return;
         }
+
+        DialogueUI.Instance.HidePrompt();
     }
 
-    NpcWander FindNearest()
+    NpcWander FindNearestNpc()
     {
         NpcWander best = null;
         float bestSqr = talkRange * talkRange;
@@ -32,6 +46,18 @@ public class PlayerInteractor : MonoBehaviour
         {
             float d = (n.transform.position - transform.position).sqrMagnitude;
             if (d < bestSqr) { bestSqr = d; best = n; }
+        }
+        return best;
+    }
+
+    BuildingDoor FindNearestDoor()
+    {
+        BuildingDoor best = null;
+        float bestDist = float.MaxValue;
+        foreach (var b in Object.FindObjectsByType<BuildingDoor>(FindObjectsSortMode.None))
+        {
+            float d = Vector3.Distance(b.transform.position, transform.position);
+            if (d <= b.enterRange && d < bestDist) { bestDist = d; best = b; }
         }
         return best;
     }
