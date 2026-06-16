@@ -4,64 +4,64 @@ using MCPForUnity.Editor.Services;
 using MCPForUnity.Editor.Clients.Configurators;
 using MCPForUnity.Editor.Services.Transport.Transports;
 
-// One-time wiring of the Unity MCP connector so Claude (the Cowork desktop app)
-// can drive this editor over a local socket with NO screen control:
-//   1. point the bridge at the installed uvx.exe (no PATH dependency)
-//   2. write the Claude Desktop MCP config (the mcpServers entry the app reads)
-//   3. enable auto-start so the bridge listens whenever the editor is open
-//   4. start the bridge listener now
+// Wires the Unity MCP connector so Claude (the Cowork desktop app) can drive this
+// editor over a local socket with NO screen control.
 //
-// Auto-runs once (guarded by an EditorPrefs flag); also re-runnable from the
-// HoboLife menu. Every step is isolated in try/catch and logged, so one failure
-// never blocks the others and the outcome is visible in the Editor log.
+// The Claude Desktop client only supports the STDIO transport, so we must run the
+// stdio bridge (a TCP listener the server discovers by port) — NOT the HTTP server.
+// This runs on every domain reload so the bridge is always up while the editor is
+// open; the one-time client config write is guarded by an EditorPrefs flag.
 [InitializeOnLoad]
 public static class HoboLifeMcpSetup
 {
     const string UvxPath = @"C:\Users\dalim\.local\bin\uvx.exe";
-    const string DoneKey = "HoboLife.McpSetup.Done.v1";
+    const string ConfigDoneKey = "HoboLife.McpConfig.Done.v2";
 
     static HoboLifeMcpSetup()
     {
         EditorApplication.delayCall += () =>
         {
-            if (!EditorPrefs.GetBool(DoneKey, false)) Run("auto");
+            EnsureStdioBridge();              // every load
+            if (!EditorPrefs.GetBool(ConfigDoneKey, false))
+            {
+                WriteClaudeDesktopConfig();   // once
+                EditorPrefs.SetBool(ConfigDoneKey, true);
+            }
         };
     }
 
-    [MenuItem("HoboLife/Setup MCP Connector (Claude)")]
-    public static void Menu() => Run("manual");
+    [MenuItem("HoboLife/Restart MCP Bridge (stdio)")]
+    public static void Menu() => EnsureStdioBridge();
 
-    static void Run(string how)
+    static void EnsureStdioBridge()
+    {
+        try
+        {
+            // Force stdio transport and turn off the HTTP auto-start so the bridge
+            // the Claude Desktop config expects is the one that runs.
+            EditorPrefs.SetBool("MCPForUnity.UseHttpTransport", false);
+            EditorPrefs.SetBool("MCPForUnity.AutoStartOnLoad", false);
+
+            StdioBridgeHost.StartAutoConnect();
+            Debug.Log("[HoboLife MCP] stdio bridge started on port " + StdioBridgeHost.GetCurrentPort());
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[HoboLife MCP] EnsureStdioBridge failed: " + e.Message);
+        }
+    }
+
+    static void WriteClaudeDesktopConfig()
     {
         try
         {
             EditorPrefs.SetString("MCPForUnity.UvxPath", UvxPath);
-            Debug.Log("[HoboLife MCP] UvxPath -> " + UvxPath);
-        }
-        catch (System.Exception e) { Debug.LogError("[HoboLife MCP] UvxPath set failed: " + e.Message); }
-
-        try
-        {
-            EditorPrefs.SetBool("MCPForUnity.AutoStartOnLoad", true);
-            Debug.Log("[HoboLife MCP] AutoStartOnLoad = true");
-        }
-        catch (System.Exception e) { Debug.LogError("[HoboLife MCP] AutoStartOnLoad failed: " + e.Message); }
-
-        try
-        {
             new ClientConfigurationService().ConfigureClient(new ClaudeDesktopConfigurator());
-            Debug.Log("[HoboLife MCP] Claude Desktop config written (mcpServers entry).");
+            Debug.Log("[HoboLife MCP] Claude Desktop config written (stdio).");
         }
-        catch (System.Exception e) { Debug.LogError("[HoboLife MCP] Configure Claude Desktop failed: " + e.Message); }
-
-        try
+        catch (System.Exception e)
         {
-            StdioBridgeHost.StartAutoConnect();
-            Debug.Log("[HoboLife MCP] Bridge StartAutoConnect() called.");
+            Debug.LogError("[HoboLife MCP] WriteClaudeDesktopConfig failed: " + e.Message);
         }
-        catch (System.Exception e) { Debug.LogError("[HoboLife MCP] StartAutoConnect failed: " + e.Message); }
-
-        EditorPrefs.SetBool(DoneKey, true);
-        Debug.Log("[HoboLife MCP] Setup complete (" + how + "). Restart the Claude desktop app to load the connector.");
     }
 }
