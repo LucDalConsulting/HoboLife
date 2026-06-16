@@ -7844,7 +7844,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4496d62c657be2345bdb0c3cac08b44c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NpcSpawner
-  count: 5
+  count: 24
 --- !u!4 &2048707990
 Transform:
   m_ObjectHideFlags: 0

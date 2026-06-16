@@ -21,6 +21,7 @@ public class SaveData
     public int bank;
     public int loanPrincipal;
     public bool ownsCar, ownsSkateboard, hasLicense;
+    public string marriedTo;
     public int deaths;
 
     // --- character (reset on death) ---

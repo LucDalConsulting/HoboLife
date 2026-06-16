@@ -112,6 +112,15 @@ public class DialogueUI : MonoBehaviour
 
     void DoThen(string then, string line)
     {
+        if (then == "marry")
+        {
+            var gsc = Object.FindFirstObjectByType<GameStateController>();
+            if (gsc != null && gsc.Data != null) gsc.Data.marriedTo = npcName;
+            Debug.Log("[HoboLife] You married " + npcName + "!");
+            if (!string.IsNullOrEmpty(line)) { sayText.text = line; Invoke(nameof(Close), 1.8f); }
+            else Close();
+            return;
+        }
         if (then == "fight")
         {
             string foe = npcName;

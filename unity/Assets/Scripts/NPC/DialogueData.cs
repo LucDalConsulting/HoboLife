@@ -30,7 +30,10 @@ public static class DialogueData
         public List<Option> options;
     }
 
-    public static Dictionary<string, Node> Tree(string id) => id == "thug" ? Thug : Pedestrian;
+    public static Dictionary<string, Node> Tree(string id)
+    {
+        switch (id) { case "thug": return Thug; case "date": return Date; default: return Pedestrian; }
+    }
 
     static Option Opt(string label, string then) => new Option { label = label, then = then };
     static Option Check(string label, string skill, int dc, Outcome s, Outcome f)
@@ -60,6 +63,23 @@ public static class DialogueData
                 Check("Easy now, no trouble.", "cha", 60,
                     Out("Tch. Get outta here.", "end"),
                     new Outcome { text = "Wrong answer.", then = "fight" }),
+            } } },
+    };
+
+    public static readonly Dictionary<string, Node> Date = new Dictionary<string, Node>
+    {
+        { "start", new Node { text = "Oh... hi. Do I know you?", options = new List<Option>
+            {
+                Check("You look amazing today.", "cha", 40,
+                    new Outcome { text = "Ha — smooth talker. Maybe you're alright.", addSkill = "cha", addAmount = 1, then = "start" },
+                    Out("...creep.", "end")),
+                Check("Want to grab dinner sometime?", "cha", 60,
+                    new Outcome { text = "You know what? That could be fun!", then = "start" },
+                    Out("Hard pass.", "end")),
+                Check("Will you marry me?", "cha", 120,
+                    new Outcome { text = "YES! Let's start a family!", then = "marry" },
+                    Out("We just met!", "end")),
+                Opt("Never mind.", "end"),
             } } },
     };
 }
