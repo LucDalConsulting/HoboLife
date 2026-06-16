@@ -11,11 +11,11 @@ Double-click **`unity/Build/HoboLife.exe`** (Windows). Or open `unity/` in Unity
 building · `I` inventory · `V` drive an owned vehicle · left/right-click = use left/right hand item ·
 `1–4` dialogue / move options.
 
-## ✅ Built so far (v0.3 — 17 systems incl. a full visual overhaul)
+## ✅ Built so far (v0.4 — 20 systems incl. real assets + real skeletal animation)
 
 | # | System | What works |
 |---|---|---|
-| 1 | **Character** | Blocky low-poly hobo with procedural walk/idle animation (speed-driven, no rig). |
+| 1 | **Character** | Real **rigged, skinned** character (glTFast-imported GLB) driven by a 1-D idle/walk/run blend tree off movement speed. Mesh is a free CC0 placeholder; a generated hobo swaps in by re-pointing one path. |
 | 2 | **Stats HUD + clock** | Health, hunger, 4 skill bars (0–999), money, in-game clock (1 real hr = 1 game day) + day/night light. |
 | 3 | **Dice** | On-screen d10 roll: `skill × roll vs DC`, gold crit (10), red auto-fail (1). |
 | 4 | **NPCs + dialogue** | Wandering NPCs; Q → numbered dialogue → dice-gated outcomes (panhandle, charm, thug). |
@@ -32,6 +32,9 @@ building · `I` inventory · `V` drive an owned vehicle · left/right-click = us
 | 15 | **Real textures** | Procedurally-generated window facades (some lit warm), asphalt roads, concrete sidewalks — buildings read as buildings. |
 | 16 | **Rounded character** | Capsule/sphere humanoid with a face, hands, feet, proper proportions; weightier animation (body bob, lean, breathing, idle head turn). |
 | 17 | **LA props** | Palm trees + glowing street lamps lining the streets. |
+| 18 | **Real CC0 world assets** | Downloaded **Poly Haven** (public-domain) assets, wired in autonomously: a real **HDRI sky** (clouds + image-based ambient light) and **PBR asphalt + concrete** (normal-mapped) on the roads/sidewalks. |
+| 19 | **Real skeletal animation** | Official **glTFast** importer added; a rigged character GLB (14 clips) drives an AnimatorController blend tree (idle/walk/run) wired to the CharacterController — first real bone animation, replacing the procedural bob. |
+| 20 | **Street life** | Painted crosswalks on all four intersection approaches, dashed lane lines, and parked cars along the curbs. |
 
 Every system is committed to `main` and verified in Play mode through the Unity MCP connector.
 
@@ -43,10 +46,12 @@ Every system is committed to `main` and verified in Play mode through the Unity 
 
 ## ⏭ Next / known gaps
 
-- **Art pass:** first round DONE in-engine (post-FX, procedural window/asphalt/concrete textures,
-  rounded character + weighty animation, palms + lamps). Still wanted: a **real rigged character**
-  (free **Quaternius** CC0 or **Mixamo**), Higgsfield concept art/textures when it's back, building
-  interiors, and richer street props (cars parked, signage).
+- **Art pass:** done so far — post-FX, real CC0 sky + street textures, real **rigged skeletal
+  animation** (idle/walk/run), palms + lamps, crosswalks + parked cars. The character mesh is a
+  CC0 **placeholder** (robot); swapping in a proper **hobo** is just re-pointing `GlbPath` in
+  `HoboLifeCharacterRig`. Blocked on a character source: **Higgsfield** is back online but its
+  account errors `User not found` (needs the connector re-authenticated), or **Mixamo** (Adobe
+  login) for a mocap human. Still wanted: building interiors, signage, Higgsfield concept art.
 - **Economy depth:** stock market, real-estate (buy/rent housing + monthly rent), owning a business
   with NPC customers, insurance, lawyers/prison.
 - **More:** kids/family beyond marriage, 200+ pooled NPCs (perf), wardrobe/clothing meshes, the
