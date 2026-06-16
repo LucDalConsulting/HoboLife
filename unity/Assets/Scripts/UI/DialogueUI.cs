@@ -13,6 +13,7 @@ public class DialogueUI : MonoBehaviour
     PlayerStats stats;
     Dictionary<string, DialogueData.Node> tree;
     string npcName;
+    string currentTreeId;
     DialogueData.Node node;
 
     CanvasGroup group;
@@ -45,6 +46,7 @@ public class DialogueUI : MonoBehaviour
     public void Open(string treeId, string name)
     {
         tree = DialogueData.Tree(treeId);
+        currentTreeId = treeId;
         npcName = name;
         IsOpen = true;
         HidePrompt();
@@ -112,8 +114,10 @@ public class DialogueUI : MonoBehaviour
     {
         if (then == "fight")
         {
-            Debug.Log("[HoboLife] Combat would start with " + npcName + " (combat screen is a later milestone).");
+            string foe = npcName;
+            bool tough = currentTreeId == "thug";
             Close();
+            if (CombatScreen.Instance != null) CombatScreen.Instance.Begin(foe, tough);
             return;
         }
         if (then == "end" || string.IsNullOrEmpty(then))
