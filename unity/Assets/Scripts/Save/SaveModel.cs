@@ -20,6 +20,7 @@ public class SaveData
     public IDCard id = new IDCard();
     public int bank;
     public int loanPrincipal;
+    public bool ownsCar, ownsSkateboard, hasLicense;
     public int deaths;
 
     // --- character (reset on death) ---

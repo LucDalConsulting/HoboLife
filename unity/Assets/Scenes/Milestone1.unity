@@ -5088,6 +5088,7 @@ GameObject:
   - component: {fileID: 1513680588}
   - component: {fileID: 1513680589}
   - component: {fileID: 1513680590}
+  - component: {fileID: 1513680591}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -5237,6 +5238,18 @@ MonoBehaviour:
   - 
   - 
   - 
+--- !u!114 &1513680591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1513680581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0291fd0a4bdc0346a0a6a1d1f7b8ba3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleController
 --- !u!21 &1556196119
 Material:
   serializedVersion: 8

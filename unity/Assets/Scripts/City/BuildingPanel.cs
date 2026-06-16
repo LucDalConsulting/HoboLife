@@ -71,7 +71,11 @@ public class BuildingPanel : MonoBehaviour
             case "casino": Add("Gamble $10 (charm the dealer)", Gamble); break;
             case "hospital": Add("Get patched up", Heal); break;
             case "clothing": Add("Buy a T-Shirt ($20)", () => BuyItem("tshirt", 20)); break;
-            case "cardealer": Add("Buy a Knife ($40)", () => BuyItem("knife", 40)); break;
+            case "cardealer":
+                Add("Buy a Car ($2000)", BuyCar);
+                Add("Buy a Skateboard ($150)", BuySkateboard);
+                Add("Take the driving test (Tool)", DrivingTest);
+                break;
             default: resultText.text = "Open for business soon."; break;
         }
         Add("Leave", Close);
@@ -175,6 +179,36 @@ public class BuildingPanel : MonoBehaviour
         if (inv == null || !inv.AddToPack(id)) { resultText.text = "Your pack is full."; return; }
         stats.money -= cost;
         resultText.text = "Bought a " + (def != null ? def.name : id) + " (-$" + cost + "). It's in your pack.";
+    }
+
+    void BuyCar()
+    {
+        var d = gsc != null ? gsc.Data : null; if (d == null) return;
+        if (d.ownsCar) { resultText.text = "You already own a car."; return; }
+        if (stats.money < 2000) { resultText.text = "A car costs $2000 — save up."; return; }
+        stats.money -= 2000; d.ownsCar = true;
+        resultText.text = "Bought a car! Get a license, then press V to drive.";
+    }
+
+    void BuySkateboard()
+    {
+        var d = gsc != null ? gsc.Data : null; if (d == null) return;
+        if (d.ownsSkateboard) { resultText.text = "You already have a skateboard."; return; }
+        if (stats.money < 150) { resultText.text = "A skateboard costs $150."; return; }
+        stats.money -= 150; d.ownsSkateboard = true;
+        resultText.text = "Bought a skateboard! Press V to ride.";
+    }
+
+    void DrivingTest()
+    {
+        var d = gsc != null ? gsc.Data : null; if (d == null) return;
+        if (d.hasLicense) { resultText.text = "You already have a license."; return; }
+        if (DiceRollUI.Instance == null) return;
+        DiceRollUI.Instance.Roll(stats.toolSkill, 60, "Driving test", res =>
+        {
+            if (res.success) { d.hasLicense = true; resultText.text = "You passed! License granted — press V to drive."; }
+            else resultText.text = "Failed the driving test. Raise your Tool skill and retry.";
+        });
     }
 
     bool Daytime() { return clock == null || clock.IsDay; }
