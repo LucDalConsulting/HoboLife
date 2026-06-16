@@ -3,41 +3,46 @@
 A 3D third-person life-sim (Stick RPG × RuneScape × D&D × Pokémon) built in **Unity 6 (URP)**.
 The Unity project lives in [`unity/`](unity/). Design: [`docs/DESIGN.md`](docs/DESIGN.md).
 
-## ▶ How to play (right now)
+## ▶ How to play
 
 Double-click **`unity/Build/HoboLife.exe`** (Windows). Or open `unity/` in Unity 6 and press Play.
 
-**Controls:** `WASD` move · drag mouse = orbit camera · scroll = zoom · `Q` talk to nearest
-person · `E` enter a building · `1–4` pick dialogue options.
+**Controls:** `WASD` move · drag mouse = orbit camera · scroll = zoom · `Q` talk · `E` enter a
+building · `I` inventory · `V` drive an owned vehicle · left/right-click = use left/right hand item ·
+`1–4` dialogue / move options.
 
-## ✅ Done (overnight build — v0.1 vertical slice)
+## ✅ Built so far (v0.2)
 
-| # | Milestone | What works |
+| # | System | What works |
 |---|---|---|
-| 1 | **Character** | Blocky low-poly hobo (head/torso/arms/legs + underwear) with procedural walk/idle animation, driven by movement speed — no rig/clips. |
-| 2 | **Stats HUD + clock** | uGUI HUD: health, hunger, 4 skill bars (0–999), money, in-game clock (1 real hr = 1 game day) + day/night light cycle. Balance numbers ported from the web prototype. |
-| 3 | **Dice** | On-screen d10 roll popup: `skill × roll vs DC`, gold crit on 10, red auto-fail on 1. |
-| 4 | **NPCs + dialogue** | 5 wandering NPCs (4 pedestrians + a thug). Press Q → numbered dialogue → dice-gated outcomes (panhandle DC 30 → +$12, charm DC 50 → +1 CHA, calm-thug DC 60). |
-| 5 | **LA city** | Walkable block: road cross + sidewalks + 10 named landmark buildings (University, Gym, Bank, Diner, Hospital, Casino, Clothing, Car Dealer, Realtor, Pawn). Enter with E for first-pass services (study +INT, gym +STR, diner food, hospital heal). |
-| 6 | **Save / load** | JSON save keyed to an auto-generated **ID card** (name/SSN/DOB). Death (starvation) respawns a fresh hobo but the **ID card + bank balance persist**. Autosaves every 30s + on quit. |
-| 7 | **Windows build** | One-command Standalone build → `Build/HoboLife.exe` (menu *HoboLife → Build Windows*). |
+| 1 | **Character** | Blocky low-poly hobo with procedural walk/idle animation (speed-driven, no rig). |
+| 2 | **Stats HUD + clock** | Health, hunger, 4 skill bars (0–999), money, in-game clock (1 real hr = 1 game day) + day/night light. |
+| 3 | **Dice** | On-screen d10 roll: `skill × roll vs DC`, gold crit (10), red auto-fail (1). |
+| 4 | **NPCs + dialogue** | Wandering NPCs; Q → numbered dialogue → dice-gated outcomes (panhandle, charm, thug). |
+| 5 | **LA city** | Road cross + sidewalks + 10 named landmark buildings around a plaza. |
+| 6 | **Save / load** | JSON save keyed to an auto-generated **ID card** (name/SSN/DOB); death resets the character but the ID card + bank persist. |
+| 7 | **Windows build** | One-command `.exe` (menu *HoboLife → Build Windows*). |
+| 8 | **Inventory** | Two hands + a 12-slot grid pack (I); left/right-click uses a hand; food is eaten; weapons set combat moves. |
+| 9 | **Combat** | Pokémon-style battle: both HP bars, log, 4 moves from the weapons in hand (Punch/Kick, Stab/Slash, Shoot/Pistol-whip) + Guard + Run; dice-scaled damage; losing → death. |
+| 10 | **Character creation** | Pre-game screen: name + DOB (auto SSN), allocate the **20 starting points**, pick a look. Shown only on a brand-new save. |
+| 11 | **Building services** | Enter (E) any landmark: study (+INT), gym (+STR), **work a burger-flip mini-game** for cash, bank deposit/withdraw/loans, casino gamble, hospital heal, shops. |
+| 12 | **Vehicles** | Buy a car ($2000, needs a license via a Tool driving test) or skateboard; **V** to drive 3× / 1.6× faster. |
+| 13 | **Dating → marriage** | Romance tree on dateable NPCs: flirt/date/propose (CHA-gated); marrying records your spouse on the account. |
 
-Every milestone is committed to `main` and was verified in Play mode through the Unity MCP connector.
+Every system is committed to `main` and verified in Play mode through the Unity MCP connector.
 
 ## 🔧 How it's built (hands-free pipeline)
 
-- **Code/scenes:** edited as files + an **AssetDatabase.Refresh(ForceUpdate)** recompile; scenes
-  assembled by editor builder scripts (`Assets/Editor/HoboLife*Builder.cs`) that auto-run on reload.
-- **Driving Unity:** the **CoplayDev unity-mcp** connector (stdio bridge on port 6400) — read scene,
-  console, run Play mode, capture screenshots, build — no screen control needed. Keep Unity open.
-- **Version control:** every step committed + pushed to GitHub.
+- Code edited as files + `AssetDatabase.Refresh(ForceUpdate)` recompiles; scenes assembled by editor
+  builder scripts. Driven via the **CoplayDev unity-mcp** connector (read scene/console, run Play
+  mode, screenshot, build) — no screen control. Every step committed + pushed to GitHub.
 
 ## ⏭ Next / known gaps
 
-- **Art:** characters/buildings are stylized primitives. Higgsfield was down all session — concept
-  art + realistic textures are queued for when it's back. A real rigged character (free **Quaternius**
-  CC0 pack, or **Mixamo** with your Adobe login) can replace the procedural one without touching
-  `ThirdPersonController`.
-- Combat (Pokémon-style screen), job mini-games, full banking/realtor/casino, inventory grid, and
-  character creation (set your own name/SSN/skills) are scoped but not yet built.
-- Minor: the humanoid's head sits a little low; easy proportion tweak.
+- **Art pass:** still stylized primitives. Higgsfield was down all session — concept art + realistic
+  textures + a real rigged character (free **Quaternius** CC0 or **Mixamo**) are queued.
+- **Economy depth:** stock market, real-estate (buy/rent housing + monthly rent), owning a business
+  with NPC customers, insurance, lawyers/prison.
+- **More:** kids/family beyond marriage, 200+ pooled NPCs (perf), wardrobe/clothing meshes, the
+  car as a drivable physical vehicle, and online multiplayer (Colyseus presence, per the design).
+- Minor polish: humanoid head sits a touch low; combat/job UIs are functional but plain.
