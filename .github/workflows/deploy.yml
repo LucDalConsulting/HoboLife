@@ -1,8 +1,8 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [main]
+  # Auto-deploy disabled: this deployed the old web client/ prototype to GitHub
+  # Pages on every push and now fails (we build in Unity). Run by hand if wanted.
   workflow_dispatch:
 
 permissions:

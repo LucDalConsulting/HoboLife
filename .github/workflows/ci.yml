@@ -1,10 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [main, 'claude/**']
-  pull_request:
-    branches: [main]
+  # Auto-run disabled: client/ + server/ are the reference web prototype; the
+  # product is now the Unity build. Run by hand from the Actions tab if needed.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
