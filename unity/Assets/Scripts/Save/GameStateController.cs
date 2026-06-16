@@ -24,9 +24,13 @@ public class GameStateController : MonoBehaviour
         data = SaveSystem.Load();
         if (data == null)
         {
+            if (CharacterCreationUI.Instance != null)
+            {
+                CharacterCreationUI.Instance.Begin(OnCreationDone);
+                return; // wait for the player; OnCreationDone finishes setup
+            }
             data = NewGame();
             SaveSystem.Write(data);
-            Debug.Log("[HoboLife] New game. ID '" + data.id.name + "' SSN " + data.id.ssn + ". Save -> " + SaveSystem.SavePath);
         }
         else
         {
@@ -37,7 +41,7 @@ public class GameStateController : MonoBehaviour
 
     void Update()
     {
-        if (stats == null) return;
+        if (stats == null || data == null) return;
         if (!dying && stats.health <= 0f) { Die(); return; }
         if ((saveTimer -= Time.deltaTime) <= 0f) { saveTimer = autosaveSeconds; Capture(); SaveSystem.Write(data); }
     }
@@ -111,6 +115,38 @@ public class GameStateController : MonoBehaviour
         SaveSystem.Write(data);
         Debug.Log("[HoboLife] You died and respawned as a new hobo. Deaths=" + data.deaths + " (bank $" + data.bank + " and ID kept).");
         dying = false;
+    }
+
+    void OnCreationDone(string name, string dob, int[] sk, AppearanceConfig look)
+    {
+        data = NewGame();
+        data.id.name = string.IsNullOrWhiteSpace(name) ? "Hobo" : name.Trim();
+        data.id.dob = dob;
+        data.intelligence = sk[0]; data.charisma = sk[1]; data.strength = sk[2]; data.toolSkill = sk[3];
+        data.maxHealth = HoboBalance.MaxHealthFor(sk[2]);
+        data.health = data.maxHealth;
+        SaveSystem.Write(data);
+        Hydrate();
+        ApplyAppearance(look);
+        Debug.Log("[HoboLife] Created '" + data.id.name + "' SSN " + data.id.ssn + " skills "
+                  + sk[0] + "/" + sk[1] + "/" + sk[2] + "/" + sk[3]);
+    }
+
+    void ApplyAppearance(AppearanceConfig look)
+    {
+        var player = GameObject.Find("Player");
+        var body = player != null ? player.transform.Find("Body") : null;
+        if (body == null) return;
+        foreach (var r in body.GetComponentsInChildren<Renderer>())
+        {
+            string n = r.gameObject.name;
+            if (n == "Pelvis") continue;                 // underwear stays
+            Color c = (n == "Hair") ? look.hair : look.skin;
+            var m = r.material;
+            if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", c);
+            if (m.HasProperty("_Color")) m.SetColor("_Color", c);
+            m.color = c;
+        }
     }
 
     public SaveData Data => data;
