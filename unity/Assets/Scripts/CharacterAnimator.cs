@@ -1,58 +1,63 @@
 using UnityEngine;
 
-// HoboLife — simple procedural character animation (deliberately RuneScape-simple).
-// Swings arms/legs while walking (speed-driven) and adds a gentle idle sway.
-// No animation clips or rig needed: it drives limb "pivot" transforms directly,
-// so it works on the blocky humanoid built by HoboLifeCharacterBuilder.
+// HoboLife — procedural character animation with weight: eased limb swing, a
+// vertical body bob synced to footfalls, a forward lean while moving, idle
+// breathing + weight-shift sway, and subtle idle head movement. Speed-driven,
+// no clips/rig. Drives the rounded humanoid from HumanoidFactory.
 public class CharacterAnimator : MonoBehaviour
 {
+    public Transform body;           // bob + lean container
     public Transform armL, armR, legL, legR, torso, head;
 
-    [Tooltip("Swing cadence (radians/sec) scaled by speed.")]
-    public float walkCadence = 9f;
-    [Tooltip("Max limb swing angle (deg) at full speed.")]
-    public float maxSwingDeg = 38f;
-    [Tooltip("Speed at which the swing is maxed out.")]
+    public float walkCadence = 8f;
+    public float maxSwingDeg = 42f;
     public float refSpeed = 4.5f;
-    public float idleSwayDeg = 4f;
-    public float idleSpeed = 1.6f;
+    public float bobHeight = 0.07f;
+    public float leanDeg = 9f;
 
-    private CharacterController cc;
-    private float phase;
+    CharacterController cc;
+    float phase, gaitSmooth;
+    Vector3 bodyBasePos;
+    Quaternion bodyBaseRot;
 
     void Awake()
     {
         cc = GetComponentInParent<CharacterController>();
         if (cc == null) cc = GetComponent<CharacterController>();
+        if (body != null) { bodyBasePos = body.localPosition; bodyBaseRot = body.localRotation; }
     }
 
     void Update()
     {
         float speed = 0f;
         if (cc != null) { Vector3 v = cc.velocity; v.y = 0f; speed = v.magnitude; }
+        float gait = Mathf.Clamp01(speed / refSpeed);
+        gaitSmooth = Mathf.Lerp(gaitSmooth, gait, Time.deltaTime * 8f);
         float t = Time.time;
 
         if (speed > 0.15f)
+            phase += Time.deltaTime * walkCadence * Mathf.Clamp(speed, 0.6f, refSpeed);
+
+        float swing = Mathf.Sin(phase) * maxSwingDeg * gaitSmooth;
+        SetPitch(legL, swing);
+        SetPitch(legR, -swing);
+        SetPitch(armL, -swing * 0.9f);
+        SetPitch(armR, swing * 0.9f);
+
+        float breathe = Mathf.Sin(t * 1.6f) * (1f - gaitSmooth);
+        if (torso) torso.localRotation = Quaternion.Euler(2.5f * gaitSmooth, swing * 0.12f, breathe * 1.6f);
+
+        if (body != null)
         {
-            phase += Time.deltaTime * walkCadence * Mathf.Clamp(speed, 0.5f, refSpeed);
-            float amt = Mathf.Clamp01(speed / refSpeed);
-            float swing = Mathf.Sin(phase) * maxSwingDeg * amt;
-            SetPitch(armL, swing);
-            SetPitch(armR, -swing);   // arms contralateral to legs
-            SetPitch(legL, -swing);
-            SetPitch(legR, swing);
-            if (torso) torso.localRotation = Quaternion.Euler(Mathf.Abs(Mathf.Sin(phase)) * 2.5f, 0f, 0f);
+            float bob = Mathf.Abs(Mathf.Sin(phase)) * bobHeight * gaitSmooth + breathe * 0.012f;
+            body.localPosition = bodyBasePos + new Vector3(0f, bob, 0f);
+            float lean = leanDeg * gaitSmooth;
+            float idleSway = Mathf.Sin(t * 0.8f) * 2f * (1f - gaitSmooth);
+            body.localRotation = bodyBaseRot * Quaternion.Euler(lean, 0f, idleSway);
         }
-        else
-        {
-            float s = Mathf.Sin(t * idleSpeed) * idleSwayDeg;
-            SetPitch(armL, s * 0.4f);
-            SetPitch(armR, s * 0.4f);
-            SetPitch(legL, 0f);
-            SetPitch(legR, 0f);
-            if (torso) torso.localRotation = Quaternion.Euler(s * 0.2f, 0f, 0f);
-            if (head) head.localRotation = Quaternion.Euler(0f, Mathf.Sin(t * idleSpeed * 0.7f) * 3f, 0f);
-        }
+
+        if (head != null)
+            head.localRotation = Quaternion.Euler(0f, Mathf.Sin(t * 0.5f) * 11f * (1f - gaitSmooth), 0f);
     }
 
     void SetPitch(Transform tr, float deg)
