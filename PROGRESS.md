@@ -11,14 +11,14 @@ Double-click **`unity/Build/HoboLife.exe`** (Windows). Or open `unity/` in Unity
 building · `I` inventory · `V` drive an owned vehicle · left/right-click = use left/right hand item ·
 `1–4` dialogue / move options.
 
-## ✅ Built so far (v0.4 — 20 systems incl. real assets + real skeletal animation)
+## ✅ Built so far (v0.5 — 22 systems; whole visible world is now real cohesive art)
 
 | # | System | What works |
 |---|---|---|
-| 1 | **Character** | Real **rigged, skinned** character (glTFast-imported GLB) driven by a 1-D idle/walk/run blend tree off movement speed. Mesh is a free CC0 placeholder; a generated hobo swaps in by re-pointing one path. |
+| 1 | **Character** | Player is a real **rigged Kenney Mini Character** (CC0), driven by a shared 1-D idle/walk/sprint blend tree off movement speed. (A custom hobo can swap in via Higgsfield once its connector is re-authed.) |
 | 2 | **Stats HUD + clock** | Health, hunger, 4 skill bars (0–999), money, in-game clock (1 real hr = 1 game day) + day/night light. |
 | 3 | **Dice** | On-screen d10 roll: `skill × roll vs DC`, gold crit (10), red auto-fail (1). |
-| 4 | **NPCs + dialogue** | Wandering NPCs; Q → numbered dialogue → dice-gated outcomes (panhandle, charm, thug). |
+| 4 | **NPCs + dialogue** | 24 wandering NPCs — each a **random rigged Kenney character** (cop, civilians, etc.) walking + idling via the shared Animator; Q → numbered dialogue → dice-gated outcomes (panhandle, charm, thug). |
 | 5 | **LA city** | Road cross + sidewalks + 10 named landmark buildings around a plaza. |
 | 6 | **Save / load** | JSON save keyed to an auto-generated **ID card** (name/SSN/DOB); death resets the character but the ID card + bank persist. |
 | 7 | **Windows build** | One-command `.exe` (menu *HoboLife → Build Windows*). |
@@ -35,6 +35,8 @@ building · `I` inventory · `V` drive an owned vehicle · left/right-click = us
 | 18 | **Real CC0 world assets** | Downloaded **Poly Haven** (public-domain) assets, wired in autonomously: a real **HDRI sky** (clouds + image-based ambient light) and **PBR asphalt + concrete** (normal-mapped) on the roads/sidewalks. |
 | 19 | **Real skeletal animation** | Official **glTFast** importer added; a rigged character GLB (14 clips) drives an AnimatorController blend tree (idle/walk/run) wired to the CharacterController — first real bone animation, replacing the procedural bob. |
 | 20 | **Street life** | Painted crosswalks on all four intersection approaches, dashed lane lines, and parked cars along the curbs. |
+| 21 | **CC0 asset library** | A cohesive **Kenney** model library imported (sourced + adversarially verified by a research workflow): City Kit Commercial/Suburban/Roads, Car Kit, Nature Kit, Mini Characters — 558 FBX, all CC0, URP/Lit with the shared colormap. |
+| 22 | **Real city models** | The primitive city is replaced by Kenney models: 10 landmark buildings (skyscrapers + commercial blocks, gameplay colliders/doors preserved), Kenney **cars** (sedan/taxi/police/van/suv), and Kenney **trees** — one consistent stylized art family with the characters. |
 
 Every system is committed to `main` and verified in Play mode through the Unity MCP connector.
 
@@ -46,12 +48,13 @@ Every system is committed to `main` and verified in Play mode through the Unity 
 
 ## ⏭ Next / known gaps
 
-- **Art pass:** done so far — post-FX, real CC0 sky + street textures, real **rigged skeletal
-  animation** (idle/walk/run), palms + lamps, crosswalks + parked cars. The character mesh is a
-  CC0 **placeholder** (robot); swapping in a proper **hobo** is just re-pointing `GlbPath` in
-  `HoboLifeCharacterRig`. Blocked on a character source: **Higgsfield** is back online but its
-  account errors `User not found` (needs the connector re-authenticated), or **Mixamo** (Adobe
-  login) for a mocap human. Still wanted: building interiors, signage, Higgsfield concept art.
+- **Art pass:** the whole visible world is now real cohesive Kenney art — rigged animated player +
+  24 NPCs, real buildings/cars/trees, real CC0 sky + street textures, post-FX. Remaining character
+  nicety: the player uses a stock Kenney character as a stand-in **hobo**; a *custom* tattered-clothes
+  hobo can be generated via **Higgsfield** (`generate_3d` → rig → animate, then re-point `PlayerChar`
+  in `HoboLifeKitCharacters`) once its connector is re-authenticated (it currently errors
+  `User not found`), or via **Mixamo**. Still wanted: building interiors, signage, more street props
+  (Kenney/Poly-Pizza hydrants/benches/signs), laying Kenney road tiles, a richer multi-block city.
 - **Economy depth:** stock market, real-estate (buy/rent housing + monthly rent), owning a business
   with NPC customers, insurance, lawyers/prison.
 - **More:** kids/family beyond marriage, 200+ pooled NPCs (perf), wardrobe/clothing meshes, the
