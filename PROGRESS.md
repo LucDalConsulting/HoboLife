@@ -11,7 +11,7 @@ Double-click **`unity/Build/HoboLife.exe`** (Windows). Or open `unity/` in Unity
 building · `I` inventory · `V` drive an owned vehicle · left/right-click = use left/right hand item ·
 `1–4` dialogue / move options.
 
-## ✅ Built so far (v0.2)
+## ✅ Built so far (v0.3 — 17 systems incl. a full visual overhaul)
 
 | # | System | What works |
 |---|---|---|
@@ -28,6 +28,10 @@ building · `I` inventory · `V` drive an owned vehicle · left/right-click = us
 | 11 | **Building services** | Enter (E) any landmark: study (+INT), gym (+STR), **work a burger-flip mini-game** for cash, bank deposit/withdraw/loans, casino gamble, hospital heal, shops. |
 | 12 | **Vehicles** | Buy a car ($2000, needs a license via a Tool driving test) or skateboard; **V** to drive 3× / 1.6× faster. |
 | 13 | **Dating → marriage** | Romance tree on dateable NPCs: flirt/date/propose (CHA-gated); marrying records your spouse on the account. |
+| 14 | **Cinematic look** | Post-processing (ACES tonemapping, bloom, color grading, vignette), warm soft-shadowed sun, atmospheric fog. |
+| 15 | **Real textures** | Procedurally-generated window facades (some lit warm), asphalt roads, concrete sidewalks — buildings read as buildings. |
+| 16 | **Rounded character** | Capsule/sphere humanoid with a face, hands, feet, proper proportions; weightier animation (body bob, lean, breathing, idle head turn). |
+| 17 | **LA props** | Palm trees + glowing street lamps lining the streets. |
 
 Every system is committed to `main` and verified in Play mode through the Unity MCP connector.
 
@@ -39,8 +43,10 @@ Every system is committed to `main` and verified in Play mode through the Unity 
 
 ## ⏭ Next / known gaps
 
-- **Art pass:** still stylized primitives. Higgsfield was down all session — concept art + realistic
-  textures + a real rigged character (free **Quaternius** CC0 or **Mixamo**) are queued.
+- **Art pass:** first round DONE in-engine (post-FX, procedural window/asphalt/concrete textures,
+  rounded character + weighty animation, palms + lamps). Still wanted: a **real rigged character**
+  (free **Quaternius** CC0 or **Mixamo**), Higgsfield concept art/textures when it's back, building
+  interiors, and richer street props (cars parked, signage).
 - **Economy depth:** stock market, real-estate (buy/rent housing + monthly rent), owning a business
   with NPC customers, insurance, lawyers/prison.
 - **More:** kids/family beyond marriage, 200+ pooled NPCs (perf), wardrobe/clothing meshes, the
