@@ -7,6 +7,14 @@ public class NpcSpawner : MonoBehaviour
 {
     public int count = 24;
 
+    // Real rigged character models (Kenney Mini Characters) + a shared locomotion
+    // controller, populated by the HoboLife/Setup Kenney Characters menu. When set,
+    // NPCs use these instead of the old primitive HumanoidFactory body.
+    public GameObject[] characterPrefabs;
+    public RuntimeAnimatorController animController;
+    public float charScale = 2.68f;        // ~1.8 m tall
+    public float charYOffset = -1.0f;      // feet to capsule bottom
+
     static readonly string[] MaleFirst = { "Marcus", "Derek", "Luis", "Vince", "Hank", "Eddie", "Tyrone", "Sam", "Carl", "Ray" };
     static readonly string[] FemaleFirst = { "Maria", "Jasmine", "Nicole", "Priya", "Sofia", "Hannah", "Destiny", "Mei", "Carla", "Rosa" };
     static readonly string[] Last = { "Reyes", "Cole", "Nguyen", "Park", "Okafor", "Romano", "Diaz", "Webb", "Flores", "Banks" };
@@ -29,12 +37,30 @@ public class NpcSpawner : MonoBehaviour
             var cc = go.AddComponent<CharacterController>();
             cc.center = Vector3.zero; cc.height = 2f; cc.radius = 0.45f;
 
-            Color skin = Skins[Random.Range(0, Skins.Length)];
-            Color shirt = role == "thug" ? new Color(0.17f, 0.18f, 0.26f)
-                        : role == "date" ? new Color(0.86f, 0.45f, 0.60f)
-                        : Shirts[Random.Range(0, Shirts.Length)];
-            Color hair = new Color(Random.Range(0.12f, 0.45f), Random.Range(0.08f, 0.30f), Random.Range(0.05f, 0.22f));
-            HumanoidFactory.BuildBody(go.transform, skin, shirt, hair);
+            if (characterPrefabs != null && characterPrefabs.Length > 0 && animController != null)
+            {
+                var pf = characterPrefabs[Random.Range(0, characterPrefabs.Length)];
+                var vis = Instantiate(pf, go.transform);
+                vis.transform.localPosition = new Vector3(0f, charYOffset, 0f);
+                vis.transform.localRotation = Quaternion.identity;
+                vis.transform.localScale = Vector3.one * charScale;
+                var anim = vis.GetComponent<Animator>();
+                if (anim == null) anim = vis.AddComponent<Animator>();
+                anim.runtimeAnimatorController = animController;
+                anim.applyRootMotion = false;
+                var drv = vis.GetComponent<CharacterRigDriver>();
+                if (drv == null) drv = vis.AddComponent<CharacterRigDriver>();
+                drv.controller = cc;
+            }
+            else
+            {
+                Color skin = Skins[Random.Range(0, Skins.Length)];
+                Color shirt = role == "thug" ? new Color(0.17f, 0.18f, 0.26f)
+                            : role == "date" ? new Color(0.86f, 0.45f, 0.60f)
+                            : Shirts[Random.Range(0, Shirts.Length)];
+                Color hair = new Color(Random.Range(0.12f, 0.45f), Random.Range(0.08f, 0.30f), Random.Range(0.05f, 0.22f));
+                HumanoidFactory.BuildBody(go.transform, skin, shirt, hair);
+            }
 
             var w = go.AddComponent<NpcWander>();
             w.treeId = role;
